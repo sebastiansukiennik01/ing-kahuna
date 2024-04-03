@@ -56,6 +56,8 @@ def add_custom_variables(data):
         data = add_change_in_balance(data, k)
     for k in range(0, 1):
         data = add_change_in_debt(data, k)
+    for k in range(0, 4):
+        data = add_change_in_savings(data, k)
         
     # drop columns that are now not needed (from change in balance, change in debt, etc.)
     log.warn(data.shape)
@@ -64,6 +66,7 @@ def add_custom_variables(data):
     data = drop_unnecessary_columns(data, columns=[f"Os_term_loan_H{i}" for i in range(0, 13)])
     data = drop_unnecessary_columns(data, columns=[f"Os_credit_card_H{i}" for i in range(0, 13)])
     data = drop_unnecessary_columns(data, columns=[f"Os_mortgage_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"Savings_amount_balance_H{i}" for i in range(0, 13)])
     log.warn(data.shape)
         
     return data
@@ -82,8 +85,9 @@ def drop_unnecessary_columns(data, columns: list = []):
     
     external = ["External_credit_card_balance", "External_term_loan_balance", "External_mortgage_balance"]
     incomes = ['Income_H0', 'Income_H1', 'Income_H2', 'Income_H3', 'Income_H4', 'Income_H5', 'Income_H6', 'Income_H7', 'Income_H8', 'Income_H9', 'Income_H10', 'Income_H11', 'Income_H12']
+    transaction = ["inc_transactions_Hx", "out_transactions_Hx"]
     
-    to_drop = external + incomes + columns
+    to_drop = columns + external + incomes + transaction
     
     return data.drop(columns=to_drop, errors='ignore')
     
@@ -146,4 +150,27 @@ def add_change_in_debt(data: pd.DataFrame, k: int):
     
     data.loc[mask, f"change_in_debt_H{k}"] = 1 # customer hasnt't reduced his debt for last k-months (previous to that every month he reduced his debt)
     data.loc[(temp[positive] >= 0).all(axis=1), f"change_in_debt_last_{k}"] = 1 # customer hasnt't reduced his debt for last k-months
+    return data
+
+
+
+# jeżeli komuś przez 1/2/3/4 miesiące spadły savingsy
+def add_change_in_savings(data: pd.DataFrame, k: int):
+    """
+    Detect if savings decreased for last k periods (no matter what happened before).
+    args:
+        data : pandas dataframe
+        k : number of periods for which savings have decreased
+    """
+    temp = pd.DataFrame()
+        
+    for i in range(0, 12):
+        temp[f"change_in_savingsH{i}"] = data[f"Savings_amount_balance_H{i}"] - data[f"Savings_amount_balance_H{i+1}"]
+        
+    data[f"change_in_savings_lastH{k}"] = 0
+    positive = [f"change_in_savingsH{i}" for i in range(0, k+1)]
+    
+    mask = (temp[positive] < 0).all(axis=1)    
+    data.loc[mask, f"change_in_savings_lastH{k}"] = 1 # customer has reduced his savings for all of last 'k' periods
+
     return data

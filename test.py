@@ -3,7 +3,7 @@ from funkcje import count_special_values
 
 if __name__ == "__main__":
     train = load_data("in_time.csv")
-    print(train.info())
+    print(train.shape)
 
     # count_special_values(train)
     # print(train.shape)
