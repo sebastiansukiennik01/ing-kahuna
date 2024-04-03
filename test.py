@@ -6,4 +6,5 @@ if __name__ == "__main__":
     print(train.info())
 
     count_special_values(train)
-
+    print(train.shape)
+    print(list(train.columns))

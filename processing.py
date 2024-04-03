@@ -60,9 +60,13 @@ def drop_unnecessary_columns(data, columns: list = []):
         columns : columns names to be dropped
     """ 
     log.info("Dropping unnecesssary columns..")
-    deafault = ["External_credit_card_balance", "External_term_loan_balance", "External_mortgage_balance"]
     
-    return data.drop(columns=deafault + columns)
+    external = ["External_credit_card_balance", "External_term_loan_balance", "External_mortgage_balance"]
+    incomes = ['Income_H0', 'Income_H1', 'Income_H2', 'Income_H3', 'Income_H4', 'Income_H5', 'Income_H6', 'Income_H7', 'Income_H8', 'Income_H9', 'Income_H10', 'Income_H11', 'Income_H12']
+    
+    to_drop = external + incomes + columns
+    
+    return data.drop(columns=to_drop)
     
     
 def fill_missing_values(data):
