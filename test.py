@@ -26,12 +26,13 @@ if __name__ == "__main__":
 
     products_data = ['Credit_cards', 'Active_credit_card_lines', 'Debit_cards', 'Active_accounts', 'Active_loans', 'Active_mortgages', 'Months_left', 'Current_installment']
     # Current_installment I mONTHS_LEFT - DAMY JESZCZE DO TRANSACTIONAL
+    behavioral_transactional_data = ['Months_left', 'Current_installment', 'change_in_balance_H0', 'change_in_balance_H1', 'change_in_balance_H2', 'change_in_balance_H3', 'change_in_balance_H4', 'change_in_balance_H5', 'change_in_debt_H0', 'change_in_debt_last_0', 'change_in_savings_lastH0', 'change_in_savings_lastH1', 'change_in_savings_lastH2', 'change_in_savings_lastH3', 'Limit_use_exceeded_H1', 'Limit_use_exceeded_H2', 'Limit_use_exceeded_H3', 'change_in_overdue_H0', 'change_in_overdue_H1', 'change_in_overdue_H2', 'change_in_overdue_H3']
+    # perform_hellwig(train, 'Target', customer_data, 1, 4)
+    # perform_hellwig(train, 'Target', products_data, 1, 4)
+    print(train.std()/train.mean())
+    perform_hellwig(train, 'Target', behavioral_transactional_data, 1, 7)
 
-    transactional_data = ['Months_left', 'Current_installment']
-    perform_hellwig(train, 'Target', customer_data, 1, 4)
-    perform_hellwig(train, 'Target', products_data, 1, 4)
-
-
+    perform_hellwig(train, 'Target', train.columns, 1, 7)
     
     # x_train = train[numeric]
     # y_train = train['Target']
