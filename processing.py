@@ -102,7 +102,7 @@ def drop_unnecessary_columns(data, columns: list = []):
     # TODO DROP CREDIT CARDS
     log.info("Dropping unnecesssary columns..")
     
-    default = ["Customer_id", "Ref_month", "Birth_date", "Time_in_address", "Oldest_account_date", "Contract_origination_date", "Contract_end_date", ""]
+    default = ["Customer_id", "Time_in_address", "Contract_origination_date", "Contract_end_date", ""]
     external = ["External_credit_card_balance", "External_term_loan_balance", "External_mortgage_balance"]
     incomes = ['Income_H0', 'Income_H1', 'Income_H2', 'Income_H3', 'Income_H4', 'Income_H5', 'Income_H6', 'Income_H7', 'Income_H8', 'Income_H9', 'Income_H10', 'Income_H11', 'Income_H12']
     transaction = ["inc_transactions_Hx", "out_transactions_Hx"]
