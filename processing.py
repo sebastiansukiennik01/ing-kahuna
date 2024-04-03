@@ -58,6 +58,8 @@ def add_custom_variables(data):
         data = add_change_in_debt(data, k)
     for k in range(0, 4):
         data = add_change_in_savings(data, k)
+        data = add_change_in_overdue(data, k)
+    
         
     # drop columns that are now not needed (from change in balance, change in debt, etc.)
     log.warn(data.shape)
@@ -67,6 +69,9 @@ def add_custom_variables(data):
     data = drop_unnecessary_columns(data, columns=[f"Os_credit_card_H{i}" for i in range(0, 13)])
     data = drop_unnecessary_columns(data, columns=[f"Os_mortgage_H{i}" for i in range(0, 13)])
     data = drop_unnecessary_columns(data, columns=[f"Savings_amount_balance_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"Overdue_term_loan_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"Overdue_credit_card_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"Overdue_mortgage_H{i}" for i in range(0, 13)])
     log.warn(data.shape)
         
     return data
@@ -174,3 +179,29 @@ def add_change_in_savings(data: pd.DataFrame, k: int):
     data.loc[mask, f"change_in_savings_lastH{k}"] = 1 # customer has reduced his savings for all of last 'k' periods
 
     return data
+
+
+def add_change_in_overdue(data: pd.DataFrame, k: int):
+    """
+    Detect if sum of overdue [Overdue_term_loan_Hx, Overdue_credit_card_Hx, Overdue_mortgage_Hx] stopps increasead in last (1, 2, 3 months) -> 1
+    args:
+        data : pandas dataframe
+        k : number of last periods in which change_is_balance marked as 1
+    """
+    temp = pd.DataFrame()
+    for i in range(0, 13):
+        temp[f"Overdue_H{i}"] = data[f"Overdue_term_loan_H{i}"] + data[f"Overdue_credit_card_H{i}"] + data[f"Overdue_mortgage_H{i}"]
+        
+    for i in range(0, 12):
+        temp[f"Overdue_H{i}_change"] = temp[f"Overdue_H{i}"] - temp[f"Overdue_H{i+1}"]
+        
+    data[f"change_in_overdue_H{k}"] = 0
+
+    positive = [f"Overdue_H{i}_change" for i in range(0, k+1)]
+    mask = (temp[positive] > 0).all(axis=1)
+
+    
+    data.loc[mask, f"change_in_overdue_H{k}"] = 1 # customer has increased his overdue for last k-months
+    return data
+
+ 
