@@ -23,6 +23,7 @@ def load_data(filename: str):
     data = calculate_limit_use(data)
     data = add_custom_variables(data)
     data = drop_unnecessary_columns(data)
+    
     data = fill_missing_values(data)
     data = calculate_customer_age(data)
     data = calculate_relation_time(data)
@@ -65,13 +66,16 @@ def add_custom_variables(data):
         data = add_change_in_savings(data, k)
     for k in range(0, 4):
         data = add_change_in_limit_use(data, k)
-    
-    data = add_change_in_overdue(data, k)
+    for k in range(0, 4):
+        data = add_change_in_overdue(data, k)
         
     # drop columns that are now not needed (from change in balance, change in debt, etc.)
     log.warn(data.shape)
     data = drop_unnecessary_columns(data, columns=[f"inc_transactions_amt_H{i}" for i in range(0, 13)])
     data = drop_unnecessary_columns(data, columns=[f"out_transactions_amt_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"inc_transactions_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"out_transactions_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"Current_amount_balance_H{i}" for i in range(0, 13)])
     data = drop_unnecessary_columns(data, columns=[f"Os_term_loan_H{i}" for i in range(0, 13)])
     data = drop_unnecessary_columns(data, columns=[f"Os_credit_card_H{i}" for i in range(0, 13)])
     data = drop_unnecessary_columns(data, columns=[f"Os_mortgage_H{i}" for i in range(0, 13)])
@@ -79,6 +83,9 @@ def add_custom_variables(data):
     data = drop_unnecessary_columns(data, columns=[f"Overdue_term_loan_H{i}" for i in range(0, 13)])
     data = drop_unnecessary_columns(data, columns=[f"Overdue_credit_card_H{i}" for i in range(0, 13)])
     data = drop_unnecessary_columns(data, columns=[f"Overdue_mortgage_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"limit_in_revolving_loans_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"utilized_limit_in_revolving_loans_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"Limit_use_H{i}" for i in range(0, 13)])
     log.warn(data.shape)
         
     return data
@@ -95,11 +102,27 @@ def drop_unnecessary_columns(data, columns: list = []):
     # TODO DROP CREDIT CARDS
     log.info("Dropping unnecesssary columns..")
     
+    default = ["Customer_id", "Ref_month", "Birth_date", "Time_in_address", "Oldest_account_date", "Contract_origination_date", "Contract_end_date", ""]
     external = ["External_credit_card_balance", "External_term_loan_balance", "External_mortgage_balance"]
     incomes = ['Income_H0', 'Income_H1', 'Income_H2', 'Income_H3', 'Income_H4', 'Income_H5', 'Income_H6', 'Income_H7', 'Income_H8', 'Income_H9', 'Income_H10', 'Income_H11', 'Income_H12']
     transaction = ["inc_transactions_Hx", "out_transactions_Hx"]
     
-    to_drop = columns + external + incomes + transaction
+    dpd_mortgage = ['DPD_mortgage_H12', 'DPD_mortgage_H11', 'DPD_mortgage_H10', 'DPD_mortgage_H9', 'DPD_mortgage_H8', 'DPD_mortgage_H7', 'DPD_mortgage_H6', 'DPD_mortgage_H5', 'DPD_mortgage_H4', 'DPD_mortgage_H3', 'DPD_mortgage_H2', 'DPD_mortgage_H1', 'DPD_mortgage_H0']
+    dpd_credit_card = ['DPD_credit_card_H12', 'DPD_credit_card_H11', 'DPD_credit_card_H10', 'DPD_credit_card_H9', 'DPD_credit_card_H8', 'DPD_credit_card_H7', 'DPD_credit_card_H6', 'DPD_credit_card_H5', 'DPD_credit_card_H4', 'DPD_credit_card_H3', 'DPD_credit_card_H2', 'DPD_credit_card_H1', 'DPD_credit_card_H0']
+    dpd_term_loan = ['DPD_term_loan_H12', 'DPD_term_loan_H11', 'DPD_term_loan_H10', 'DPD_term_loan_H9', 'DPD_term_loan_H8', 'DPD_term_loan_H7', 'DPD_term_loan_H6', 'DPD_term_loan_H5', 'DPD_term_loan_H4', 'DPD_term_loan_H3', 'DPD_term_loan_H2', 'DPD_term_loan_H1', 'DPD_term_loan_H0']
+    default_flag = ['Default_flag_H12','Default_flag_H11','Default_flag_H10','Default_flag_H9','Default_flag_H8','Default_flag_H7','Default_flag_H6','Default_flag_H5','Default_flag_H4','Default_flag_H3','Default_flag_H2','Default_flag_H1']
+    
+    payment_loan = ['Payments_term_loan_H12', 'Payments_term_loan_H11', 'Payments_term_loan_H10', 'Payments_term_loan_H9', 'Payments_term_loan_H8', 'Payments_term_loan_H7', 'Payments_term_loan_H6', 'Payments_term_loan_H5', 'Payments_term_loan_H4', 'Payments_term_loan_H3', 'Payments_term_loan_H2', 'Payments_term_loan_H1', 'Payments_term_loan_H0']
+    payment_credit = ['Payments_credit_card_H12', 'Payments_credit_card_H11', 'Payments_credit_card_H10', 'Payments_credit_card_H9', 'Payments_credit_card_H8', 'Payments_credit_card_H7', 'Payments_credit_card_H6', 'Payments_credit_card_H5', 'Payments_credit_card_H4', 'Payments_credit_card_H3', 'Payments_credit_card_H2', 'Payments_credit_card_H1', 'Payments_credit_card_H0']
+    payment_mortgage = ['Payments_mortgage_H12', 'Payments_mortgage_H11', 'Payments_mortgage_H10', 'Payments_mortgage_H9', 'Payments_mortgage_H8', 'Payments_mortgage_H7', 'Payments_mortgage_H6', 'Payments_mortgage_H5', 'Payments_mortgage_H4', 'Payments_mortgage_H3', 'Payments_mortgage_H2', 'Payments_mortgage_H1', 'Payments_mortgage_H0']
+    
+    
+    
+    
+    
+    
+    
+    to_drop = columns + default + external + incomes + transaction + dpd_mortgage + dpd_credit_card + dpd_term_loan + default_flag + payment_credit + payment_loan + payment_mortgage
     
     return data.drop(columns=to_drop, errors='ignore')
     
