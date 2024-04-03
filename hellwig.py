@@ -8,7 +8,7 @@ from tqdm import tqdm
 from joblib import Parallel, delayed
 from operator import itemgetter
 
-def hellwig2(df, dependent_var, independent_vars, min, max):
+def perform_hellwig(df, dependent_var, independent_vars, min, max):
     if min < 1:
         raise ValueError("min cannot be smaller than 1")
     df.apply(pd.to_numeric, errors='coerce')

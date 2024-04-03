@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import logging
-from funkcje import count_special_values, calculate_customer_age, calculate_relation_time, calculate_limit_use
+from sklearn.preprocessing import MinMaxScaler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -191,7 +191,35 @@ def add_change_in_limit_use(data: pd.DataFrame, k: int):
     """
     exceeded = [f"Limit_use_H{i}" for i in range(1, k+1)]
     data[f"Limit_use_exceeded_H{k}"] = 0
-    mask = (data[exceeded] > 0.8).all(axis=1)    
+    mask = (data[exceeded] > 80).all(axis=1)    
     data.loc[mask, f"Limit_use_exceeded_H{k}"] = 1 # customer has reduced his savings for all of last 'k' periods
 
+    return data
+
+def count_special_values(df):
+    for column in df.columns:
+        count_9999 = (df[column] == -9999).sum()
+        if count_9999 > 0:
+            print(f"Column '{column}' has {count_9999} rows with value 9999.")
+
+def calculate_customer_age(df):
+    df['Age'] = df['Ref_month'] - df['Birth_date']
+    df['Age'] = df['Age'].dt.days // 365
+    return df
+
+def calculate_relation_time(df):
+    df['Relation_time'] = df['Ref_month'] - df['Oldest_account_date']
+    df['Relation_time'] = df['Relation_time'].dt.days // 365
+    return df
+
+def calculate_limit_use(df):
+    for i in range(1,13):
+        df[f'Limit_use_H{i}'] = df[f'utilized_limit_in_revolving_loans_H{i}'] / df[f'limit_in_revolving_loans_H{i}'] * 100
+    print(df['Limit_use_H1'].describe())
+    return df
+
+def normalize_data(data):
+    scaler = MinMaxScaler()
+    for column in data.columns:
+        data[column] = scaler.fit_transform(data[column])
     return data

@@ -1,8 +1,7 @@
 from processing import load_data, change_to_dates, add_custom_variables
-from funkcje import count_special_values, calculate_customer_age, calculate_relation_time, calculate_limit_use
+
 from plots import plot_stats, draw_boxplots
-from helwig2 import hellwig2
-from RFE import rfe
+from hellwig import perform_hellwig
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
@@ -25,8 +24,8 @@ if __name__ == "__main__":
     # Current_installment I mONTHS_LEFT - DAMY JESZCZE DO TRANSACTIONAL
 
     transactional_data = ['Months_left', 'Current_installment']
-    # hellwig2(train, 'Target', customer_data, 1, 5)
-    # hellwig2(train, 'Target', products_data, 1, 5)
+    # hellwig(train, 'Target', customer_data, 1, 5)
+    # hellwig(train, 'Target', products_data, 1, 5)
 
 
     
