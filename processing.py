@@ -34,7 +34,7 @@ def add_custom_variables(data):
         data : pandas dataframe
     """
     # contract origin date + contract end data ===> months_left
-    data["months_left"] = (data["Contract_end_date"] - data["Contract_origination_date"]) / pd.Timedelta(days=30)
+    data["Months_left"] = (data["Contract_end_date"] - data["Contract_origination_date"]) / pd.Timedelta(days=30)
     
     return data
     

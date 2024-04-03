@@ -5,12 +5,7 @@ import pandas as pd
 
 
 
-def do_hellwig(filename: str, potential_features: list):
-    df = pd.read_csv(filename)
-
-    # # potential features
-    # potential_features = ['instant', 'holiday', 'workingday',
-    #         'weathersit', 'temp', 'hum', 'windspeed']
+def do_hellwig(df, potential_features: list):
 
     def hellwig(corr: pd.DataFrame, comb):
         info = 0
