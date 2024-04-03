@@ -46,9 +46,26 @@ def add_custom_variables(data):
         data : pandas dataframe
     """
     log.info("Adding custom variables to dataset..")
+    
     # contract origin date + contract end data ===> months_left
     data["months_left"] = (data["Contract_end_date"] - data["Contract_origination_date"]) / pd.Timedelta(days=30)
     
+    
+    log.warn(data.shape)
+    for k in range(0, 6):
+        data = add_change_in_balance(data, k)
+    for k in range(0, 1):
+        data = add_change_in_debt(data, k)
+        
+    # drop columns that are now not needed (from change in balance, change in debt, etc.)
+    log.warn(data.shape)
+    data = drop_unnecessary_columns(data, columns=[f"inc_transactions_amt_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"out_transactions_amt_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"Os_term_loan_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"Os_credit_card_H{i}" for i in range(0, 13)])
+    data = drop_unnecessary_columns(data, columns=[f"Os_mortgage_H{i}" for i in range(0, 13)])
+    log.warn(data.shape)
+        
     return data
 
 
@@ -59,6 +76,8 @@ def drop_unnecessary_columns(data, columns: list = []):
         data : pandas dataframe
         columns : columns names to be dropped
     """ 
+    
+    # TODO DROP CREDIT CARDS
     log.info("Dropping unnecesssary columns..")
     
     external = ["External_credit_card_balance", "External_term_loan_balance", "External_mortgage_balance"]
@@ -66,7 +85,7 @@ def drop_unnecessary_columns(data, columns: list = []):
     
     to_drop = external + incomes + columns
     
-    return data.drop(columns=to_drop)
+    return data.drop(columns=to_drop, errors='ignore')
     
     
 def fill_missing_values(data):
@@ -78,3 +97,53 @@ def fill_missing_values(data):
     
     return data
     
+    
+    
+def add_change_in_balance(data: pd.DataFrame, k: int):
+    """
+    Detect if outcomming transaction > incomming_transactions (1, 2, 3 months) -> 1
+    args:
+        data : pandas dataframe
+        k : number of negative periods after which change_is_balance marked as 1
+    """
+    temp = pd.DataFrame()
+    for i in range(0, 13):
+        temp[f"balance_h{i}"] = data[f"inc_transactions_amt_H{i}"] - data[f"out_transactions_amt_H{i}"]
+        
+    data[f"change_in_balance_H{k}"] = 0
+
+    negative = [f"balance_h{i}" for i in range(0, k+1)]
+    positive = [f"balance_h{i}" for i in range(k+1, 13)]
+    mask = (temp[positive] > 0).all(axis=1) & (temp[negative] < 0).all(axis=1)
+
+    
+    data.loc[mask, f"change_in_balance_H{k}"] = 1
+    
+    return data
+
+    
+def add_change_in_debt(data: pd.DataFrame, k: int):
+    """
+    Detect if sum of debt [Os_term_loan_Hx, Os_credit_card_Hx, Os_mortgage_Hx] stopps decresing (1, 2, 3 months) -> 1
+    args:
+        data : pandas dataframe
+        k : number of negative periods after which change_is_balance marked as 1
+    """
+    temp = pd.DataFrame()
+    for i in range(0, 13):
+        temp[f"Os_debt_h{i}"] = data[f"Os_term_loan_H{i}"] + data[f"Os_credit_card_H{i}"] + data[f"Os_mortgage_H{i}"]
+        
+    for i in range(0, 12):
+        temp[f"Os_debt_h{i}_change"] = temp[f"Os_debt_h{i}"] - temp[f"Os_debt_h{i+1}"]
+        
+    data[f"change_in_debt_H{k}"] = 0
+    data[f"change_in_debt_last_{k}"] = 0
+
+    positive = [f"Os_debt_h{i}_change" for i in range(0, k+1)]
+    negative = [f"Os_debt_h{i}_change" for i in range(k+1, 12)]
+    mask = (temp[positive] >= 0).all(axis=1) & (temp[negative] < 0).all(axis=1)
+
+    
+    data.loc[mask, f"change_in_debt_H{k}"] = 1 # customer hasnt't reduced his debt for last k-months (previous to that every month he reduced his debt)
+    data.loc[(temp[positive] >= 0).all(axis=1), f"change_in_debt_last_{k}"] = 1 # customer hasnt't reduced his debt for last k-months
+    return data

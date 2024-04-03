@@ -5,6 +5,6 @@ if __name__ == "__main__":
     train = load_data("in_time.csv")
     print(train.info())
 
-    count_special_values(train)
-    print(train.shape)
-    print(list(train.columns))
+    # count_special_values(train)
+    # print(train.shape)
+    # print(list(train.columns))
