@@ -1,13 +1,14 @@
-from processing import load_data
-import matplotlib.pyplot as plt
-import numpy as np
+from processing import load_data, change_to_dates, add_custom_variables
 from funkcje import count_special_values
 
 if __name__ == "__main__":
     train = load_data("in_time.csv")
-    test = load_data("out_of_time.csv")
-    
-    print(f"train shape: {train.shape}\ntest shape: {test.shape}")
-    print(train['External_credit_card_balance'].describe())
+    print(train.select_dtypes(include=['object']).head())
 
-    count_special_values()
+    train = change_to_dates(train)
+    train = add_custom_variables(train)
+    # print(train.info())
+    print(train["months_left"])
+
+    count_special_values(train)
+
