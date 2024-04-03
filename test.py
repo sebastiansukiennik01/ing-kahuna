@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
     train = load_data("in_time.csv")
     
+    print(list(train.columns))
+    
     print(train.shape)
     # print(train['Limit_use_exceeded_H1'])
     # print(train.select_dtypes(include=['object']).head())

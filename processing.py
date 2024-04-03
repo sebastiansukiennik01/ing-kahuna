@@ -22,11 +22,11 @@ def load_data(filename: str):
     
     data = calculate_limit_use(data)
     data = add_custom_variables(data)
-    data = drop_unnecessary_columns(data)
     
     data = fill_missing_values(data)
     data = calculate_customer_age(data)
     data = calculate_relation_time(data)
+    data = drop_unnecessary_columns(data, columns=["Ref_month", "Birth_date", "Oldest_account_date"])
     
     return data
 
@@ -99,10 +99,9 @@ def drop_unnecessary_columns(data, columns: list = []):
         columns : columns names to be dropped
     """ 
     
-    # TODO DROP CREDIT CARDS
     log.info("Dropping unnecesssary columns..")
     
-    default = ["Customer_id", "Time_in_address", "Contract_origination_date", "Contract_end_date", ""]
+    default = ["Customer_id", "Time_in_address", "Contract_origination_date", "Contract_end_date"]
     external = ["External_credit_card_balance", "External_term_loan_balance", "External_mortgage_balance"]
     incomes = ['Income_H0', 'Income_H1', 'Income_H2', 'Income_H3', 'Income_H4', 'Income_H5', 'Income_H6', 'Income_H7', 'Income_H8', 'Income_H9', 'Income_H10', 'Income_H11', 'Income_H12']
     transaction = ["inc_transactions_Hx", "out_transactions_Hx"]
