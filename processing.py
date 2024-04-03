@@ -245,7 +245,6 @@ def calculate_relation_time(df):
 def calculate_limit_use(df):
     for i in range(1,13):
         df[f'Limit_use_H{i}'] = df[f'utilized_limit_in_revolving_loans_H{i}'] / df[f'limit_in_revolving_loans_H{i}'] * 100
-    print(df['Limit_use_H1'].describe())
     return df
 
 def normalize_data(data):

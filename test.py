@@ -24,8 +24,8 @@ if __name__ == "__main__":
     # Current_installment I mONTHS_LEFT - DAMY JESZCZE DO TRANSACTIONAL
 
     transactional_data = ['Months_left', 'Current_installment']
-    # hellwig(train, 'Target', customer_data, 1, 5)
-    # hellwig(train, 'Target', products_data, 1, 5)
+    perform_hellwig(train, 'Target', customer_data, 1, 4)
+    perform_hellwig(train, 'Target', products_data, 1, 4)
 
 
     
