@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import logging
+from funkcje import count_special_values, calculate_customer_age, calculate_relation_time, calculate_limit_use
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -18,9 +19,13 @@ def load_data(filename: str):
     data = pd.read_csv(filepath)
     
     data = change_to_dates(data)
+    
+    data = calculate_limit_use(data)
     data = add_custom_variables(data)
     data = drop_unnecessary_columns(data)
     data = fill_missing_values(data)
+    data = calculate_customer_age(data)
+    data = calculate_relation_time(data)
     
     return data
 
@@ -48,7 +53,7 @@ def add_custom_variables(data):
     log.info("Adding custom variables to dataset..")
     
     # contract origin date + contract end data ===> months_left
-    data["months_left"] = (data["Contract_end_date"] - data["Contract_origination_date"]) / pd.Timedelta(days=30)
+    data["Months_left"] = (data["Contract_end_date"] - data["Contract_origination_date"]) / pd.Timedelta(days=30)
     
     
     log.warn(data.shape)
@@ -58,8 +63,10 @@ def add_custom_variables(data):
         data = add_change_in_debt(data, k)
     for k in range(0, 4):
         data = add_change_in_savings(data, k)
-        data = add_change_in_overdue(data, k)
+    for k in range(0, 4):
+        data = add_change_in_limit_use(data, k)
     
+    data = add_change_in_overdue(data, k)
         
     # drop columns that are now not needed (from change in balance, change in debt, etc.)
     log.warn(data.shape)
@@ -205,3 +212,16 @@ def add_change_in_overdue(data: pd.DataFrame, k: int):
     return data
 
  
+def add_change_in_limit_use(data: pd.DataFrame, k: int):
+    """
+    Detect if customer used more than 80% of the credit card limit for last k periods (no matter what happened before).
+    args:
+        data : pandas dataframe
+        k : number of periods
+    """
+    exceeded = [f"Limit_use_H{i}" for i in range(1, k+1)]
+    data[f"Limit_use_exceeded_H{k}"] = 0
+    mask = (data[exceeded] > 0.8).all(axis=1)    
+    data.loc[mask, f"Limit_use_exceeded_H{k}"] = 1 # customer has reduced his savings for all of last 'k' periods
+
+    return data
